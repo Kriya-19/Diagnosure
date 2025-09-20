@@ -1,47 +1,94 @@
 // src/App.js
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 
 // Components
 import Navbar from "./components/Navbar/Navbar";
+import ChatWindow from "./components/ChatWindow";
+import PrescriptionReader from "./components/PrescriptionReader";
+import Footer from "./components/Footer";
 
 // Pages
-import LandingPage from "./pages/LandingPage";
 import MapPage from "./pages/MapPage/MapPage";
 import AppointmentsPage from "./pages/AppointmentsPage/AppointmentsPage";
-import SymptomChecker from "./pages/SymptomChecker/SymptomChecker";
-import PrescriptionReader from "./pages/PrescriptionReader/PrescriptionReader";
 import Profile from "./pages/Profile/Profile";
+import LandingPage from "./pages/LandingPage";
+import SignupPage from "./pages/Signup";
+import CompleteYourProfile from "./pages/CompleteYourProfile";
+import LoginPage from "./pages/LoginPage";
 
 // Styles
 import "./App.css";
 
+// Global styles reset
+const globalStyles = `
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: "Lato", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  #root {
+    min-height: 100vh;
+  }
+`;
+
+// Wrapper to conditionally show Navbar/Footer
+function Layout({ children }) {
+  const location = useLocation();
+
+  // Routes that should NOT show navbar/footer
+  const authRoutes = ["/", "/login", "/signup", "/complete"];
+  const hideLayout = authRoutes.includes(location.pathname);
+
+  return (
+    <div className="app">
+      {!hideLayout && <Navbar />}
+      <main className="app-content">{children}</main>
+      {!hideLayout && <Footer />}
+    </div>
+  );
+}
+
 function App() {
+  // Inject global styles
+  useEffect(() => {
+    const style = document.createElement("style");
+    style.textContent = globalStyles;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
   return (
     <AppProvider>
       <Router>
-        <div className="app">
-          {/* Show Navbar only after landing page */}
-          {window.location.pathname !== "/" && <Navbar />}
-          <main className="app-content">
-            <Routes>
-              {/* Landing Page */}
-              <Route path="/" element={<LandingPage />} />
+        <Layout>
+          <Routes>
+            {/* Landing/Auth flow */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/complete" element={<CompleteYourProfile />} />
+            <Route path="/login" element={<LoginPage />} />
 
-              {/* Main Features */}
-              <Route path="/map" element={<MapPage />} />
-              <Route path="/appointments" element={<AppointmentsPage />} />
-              <Route path="/symptom-checker" element={<SymptomChecker />} />
-              <Route path="/prescription-reader" element={<PrescriptionReader />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/history" element={<AppointmentsPage />} />
+            {/* Main app flow with Navbar/Footer */}
+            <Route path="/map" element={<MapPage />} />
+            <Route path="/appointments" element={<MapPage />} />
+            <Route path="/history" element={<AppointmentsPage />} />
+            <Route path="/symptom-checker" element={<ChatWindow />} />
+            <Route path="/prescription-reader" element={<PrescriptionReader />} />
+            <Route path="/profile" element={<Profile />} />
 
-              {/* Fallback */}
-              <Route path="*" element={<MapPage />} />
-            </Routes>
-          </main>
-        </div>
+            {/* Fallback */}
+            <Route path="*" element={<LandingPage />} />
+          </Routes>
+        </Layout>
       </Router>
     </AppProvider>
   );

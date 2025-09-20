@@ -9,5 +9,7 @@ export default defineConfig({
         plugins: ['styled-jsx/babel'],
       },
     }),
-  ],
+  ],server: {
+    historyApiFallback: true,  // 👈 ensures React Router routes work
+  },
 });
